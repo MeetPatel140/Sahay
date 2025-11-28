@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahay (सहाय) - Interactive Business Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-primary { background-color: #00796B; }
+        .bg-accent { background-color: #FFB74D; }
+        .text-primary { color: #00796B; }
+        .text-accent { color: #FFB74D; }
+        .border-primary { border-color: #00796B; }
+        .border-accent { border-color: #FFB74D; }
+        .hover-primary:hover { background-color: #00796B; }
+        .hover-accent:hover { background-color: #FFB74D; }
+        .pulse-orange { animation: pulse-orange 2s infinite; }
+        @keyframes pulse-orange {
+            0%, 100% { background-color: #FFB74D; }
+            50% { background-color: #FF8F00; }
+        }
+        .map-pattern {
+            background-image: radial-gradient(circle at 20% 30%, #00796B 2px, transparent 2px),
+                            radial-gradient(circle at 60% 70%, #00796B 2px, transparent 2px),
+                            radial-gradient(circle at 80% 20%, #FFB74D 2px, transparent 2px),
+                            radial-gradient(circle at 40% 80%, #FFB74D 2px, transparent 2px);
+            background-size: 100px 100px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-primary text-white p-4 sticky top-0 z-50 shadow-xl">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-hands-helping text-2xl text-accent"></i>
+                <h1 class="text-2xl font-bold">Sahay (सहाय)</h1>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#vision" class="hover:text-accent transition-colors">Vision</a>
+                <a href="#experience" class="hover:text-accent transition-colors">Experience</a>
+                <a href="#data" class="hover:text-accent transition-colors">Data</a>
+                <a href="#strategy" class="hover:text-accent transition-colors">Strategy</a>
+                <a href="#finance" class="hover:text-accent transition-colors">Finance</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-primary to-teal-700 text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-5xl font-bold mb-4">The Voice-First Hyperlocal Marketplace</h2>
+            <p class="text-xl mb-8 text-accent">Aapka Padosi, Aapka Sahayak</p>
+            <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto">
+                <p class="text-lg leading-relaxed">
+                    Digitizing India's daily "naka" and neighborhood network, making help accessible to everyone, everywhere, instantly.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vision Section -->
+    <section id="vision" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-primary text-center mb-12">Vision & Problem</h3>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Problem -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h4 class="text-2xl font-semibold text-primary mb-6 flex items-center">
+                        <i class="fas fa-exclamation-triangle text-accent mr-3"></i>
+                        The Gap in Market
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-clock text-accent mt-1"></i>
+                            <p>"I need someone to help me shift this heavy sofa to the next room." <span class="text-primary font-semibold">(10 min task)</span></p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-tools text-accent mt-1"></i>
+                            <p>"I need a ladder for 1 hour to change a bulb." <span class="text-primary font-semibold">(Borrowing)</span></p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-running text-accent mt-1"></i>
+                            <p>"I need someone to stand in the ration line for me." <span class="text-primary font-semibold">(Errand)</span></p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-bolt text-accent mt-1"></i>
+                            <p>"I need a plumber NOW, not tomorrow." <span class="text-primary font-semibold">(Urgency)</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Solution -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h4 class="text-2xl font-semibold text-primary mb-6 flex items-center">
+                        <i class="fas fa-lightbulb text-accent mr-3"></i>
+                        Our Solution
+                    </h4>
+                    <div class="space-y-6">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">
+                                <span class="text-red-500">₹500+</span> → <span class="text-green-500">₹50-100</span>
+                            </div>
+                            <div class="text-2xl mb-4">
+                                <span class="text-red-500">2-4 hours</span> → <span class="text-green-500">10 minutes</span>
+                            </div>
+                        </div>
+                        <div class="bg-accent/10 rounded-xl p-4">
+                            <p class="text-center font-semibold text-primary">
+                                Voice-operated hyperlocal marketplace connecting neighbors within 500m radius for immediate micro-help
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-primary text-center mb-12">Interactive Experience</h3>
+            
+            <div class="max-w-4xl mx-auto">
+                <!-- Mode Toggle -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex bg-white rounded-full p-2 shadow-xl">
+                        <button id="customerBtn" class="px-6 py-3 rounded-full bg-primary text-white font-semibold transition-all">
+                            <i class="fas fa-user mr-2"></i>Customer Mode
+                        </button>
+                        <button id="helperBtn" class="px-6 py-3 rounded-full text-primary font-semibold transition-all">
+                            <i class="fas fa-hands-helping mr-2"></i>Helper Mode
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Customer Mode UI -->
+                <div id="customerMode" class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <!-- Floating Input Card -->
+                    <div class="bg-primary text-white p-6">
+                        <h4 class="text-xl font-semibold mb-4 text-center">What help do you need today?</h4>
+                        <div class="text-center">
+                            <button class="pulse-orange rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-xl">
+                                <i class="fas fa-microphone text-white text-3xl"></i>
+                            </button>
+                            <p class="text-accent font-semibold">Bol kar madad maange</p>
+                            <p class="text-sm opacity-90">(Ask for help by speaking)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Simulation -->
+                    <div class="h-64 map-pattern relative flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="flex justify-center space-x-8 mb-4">
+                                <div class="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
+                                <div class="w-4 h-4 bg-accent rounded-full animate-pulse"></div>
+                                <div class="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
+                            </div>
+                            <p class="text-primary font-semibold">3 helpers found within 500m</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Helper Mode UI -->
+                <div id="helperMode" class="bg-white rounded-2xl shadow-xl overflow-hidden hidden">
+                    <!-- Status Bar -->
+                    <div class="bg-primary text-white p-4 text-center">
+                        <div class="flex items-center justify-center space-x-3">
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                            <h4 class="text-xl font-semibold">Aap Live Hain (You are Live)</h4>
+                        </div>
+                    </div>
+                    
+                    <!-- Task Cards -->
+                    <div class="p-6 space-y-4">
+                        <div class="border-2 border-accent rounded-xl p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h5 class="font-semibold text-primary">Help move furniture</h5>
+                                    <p class="text-sm text-gray-600">1.2 KM away • 5 mins ago</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-green-600">₹80</div>
+                                </div>
+                            </div>
+                            <button class="w-full bg-primary text-white py-3 rounded-xl font-semibold hover-primary transition-colors">
+                                Accept Task
+                            </button>
+                        </div>
+                        
+                        <div class="border-2 border-accent rounded-xl p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h5 class="font-semibold text-primary">Need electrician urgently</h5>
+                                    <p class="text-sm text-gray-600">0.8 KM away • 2 mins ago</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-green-600">₹150</div>
+                                </div>
+                            </div>
+                            <button class="w-full bg-primary text-white py-3 rounded-xl font-semibold hover-primary transition-colors">
+                                Accept Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Section -->
+    <section id="data" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-primary text-center mb-12">Market Analysis</h3>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Market Size Chart -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h4 class="text-2xl font-semibold text-primary mb-6 text-center">Target Market Size</h4>
+                    <canvas id="marketChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Revenue Potential -->
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h4 class="text-2xl font-semibold text-primary mb-6 text-center">Revenue Streams</h4>
+                    <canvas id="revenueChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid md:grid-cols-4 gap-6 mt-12">
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-primary mb-2">800M+</div>
+                    <p class="text-gray-600">Smartphone Users</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-accent mb-2">₹5-10</div>
+                    <p class="text-gray-600">Platform Fee</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-primary mb-2">10 min</div>
+                    <p class="text-gray-600">Average Response</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-accent mb-2">500m</div>
+                    <p class="text-gray-600">Service Radius</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Strategy Section -->
+    <section id="strategy" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-primary text-center mb-12">The "Rapido Effect" Viral Loop</h3>
+            
+            <div class="max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-4 gap-6">
+                    <!-- Step 1 -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-hammer text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold text-primary mb-3">Blue Collar Push</h4>
+                        <p class="text-sm text-gray-600">Workers install voice-operated app, get verified digital ID</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                        <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold text-primary mb-3">Neighbor Pull</h4>
+                        <p class="text-sm text-gray-600">Users speak their needs, app alerts helpers within 500m</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-bolt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold text-primary mb-3">Instant Gratification</h4>
+                        <p class="text-sm text-gray-600">Helper arrives in 10 mins, earns ₹50-100 instantly via UPI</p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                        <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-share-alt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold text-primary mb-3">Word of Mouth</h4>
+                        <p class="text-sm text-gray-600">"Roz kaam milta hai" + "5 min mein helper mila"</p>
+                    </div>
+                </div>
+
+                <!-- Growth Projection -->
+                <div class="bg-white rounded-2xl shadow-xl p-8 mt-12">
+                    <h4 class="text-2xl font-semibold text-primary mb-6 text-center">Projected Growth</h4>
+                    <canvas id="growthChart" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Finance Section -->
+    <section id="finance" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-primary text-center mb-12">Interactive Revenue Simulator</h3>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Input Controls -->
+                        <div class="space-y-6">
+                            <h4 class="text-xl font-semibold text-primary mb-4">Adjust Parameters</h4>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Daily Active Users</label>
+                                <input type="range" id="usersSlider" min="1000" max="100000" value="10000" class="w-full">
+                                <div class="text-center text-primary font-semibold" id="usersValue">10,000</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tasks per User per Day</label>
+                                <input type="range" id="tasksSlider" min="1" max="10" value="3" class="w-full">
+                                <div class="text-center text-primary font-semibold" id="tasksValue">3</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Average Platform Fee (₹)</label>
+                                <input type="range" id="feeSlider" min="5" max="20" value="8" class="w-full">
+                                <div class="text-center text-primary font-semibold" id="feeValue">₹8</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Premium Users (%)</label>
+                                <input type="range" id="premiumSlider" min="1" max="20" value="5" class="w-full">
+                                <div class="text-center text-primary font-semibold" id="premiumValue">5%</div>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div class="space-y-6">
+                            <h4 class="text-xl font-semibold text-primary mb-4">Revenue Projection</h4>
+                            
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-600">Daily Task Revenue</div>
+                                <div class="text-2xl font-bold text-primary" id="dailyTaskRevenue">₹2,40,000</div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-600">Monthly Premium Revenue</div>
+                                <div class="text-2xl font-bold text-accent" id="monthlyPremiumRevenue">₹24,500</div>
+                            </div>
+                            
+                            <div class="bg-primary text-white rounded-xl p-4">
+                                <div class="text-sm opacity-90">Monthly Total Revenue</div>
+                                <div class="text-3xl font-bold" id="monthlyTotalRevenue">₹74,24,500</div>
+                            </div>
+                            
+                            <div class="bg-accent text-white rounded-xl p-4">
+                                <div class="text-sm opacity-90">Annual Revenue Projection</div>
+                                <div class="text-3xl font-bold" id="annualRevenue">₹8.9 Cr</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <i class="fas fa-hands-helping text-3xl text-accent"></i>
+                <h2 class="text-3xl font-bold">Sahay (सहाय)</h2>
+            </div>
+            <p class="text-xl text-accent mb-4">Aapka Padosi, Aapka Sahayak</p>
+            <p class="opacity-90">The Voice-First Hyperlocal Marketplace for India</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mode Toggle Functionality
+        const customerBtn = document.getElementById('customerBtn');
+        const helperBtn = document.getElementById('helperBtn');
+        const customerMode = document.getElementById('customerMode');
+        const helperMode = document.getElementById('helperMode');
+
+        customerBtn.addEventListener('click', () => {
+            customerBtn.classList.add('bg-primary', 'text-white');
+            customerBtn.classList.remove('text-primary');
+            helperBtn.classList.remove('bg-primary', 'text-white');
+            helperBtn.classList.add('text-primary');
+            customerMode.classList.remove('hidden');
+            helperMode.classList.add('hidden');
+        });
+
+        helperBtn.addEventListener('click', () => {
+            helperBtn.classList.add('bg-primary', 'text-white');
+            helperBtn.classList.remove('text-primary');
+            customerBtn.classList.remove('bg-primary', 'text-white');
+            customerBtn.classList.add('text-primary');
+            helperMode.classList.remove('hidden');
+            customerMode.classList.add('hidden');
+        });
+
+        // Charts
+        const ctx1 = document.getElementById('marketChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Tier 1 Cities', 'Tier 2 Cities', 'Tier 3 Cities'],
+                datasets: [{
+                    data: [300, 350, 150],
+                    backgroundColor: ['#00796B', '#FFB74D', '#4DB6AC']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Platform Fee', 'Premium', 'Ads'],
+                datasets: [{
+                    data: [70, 20, 10],
+                    backgroundColor: ['#00796B', '#FFB74D', '#4DB6AC']
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('growthChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: ['Month 1', 'Month 3', 'Month 6', 'Month 12', 'Month 18', 'Month 24'],
+                datasets: [{
+                    label: 'Users',
+                    data: [1000, 5000, 25000, 100000, 300000, 800000],
+                    borderColor: '#00796B',
+                    backgroundColor: 'rgba(0, 121, 107, 0.1)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Revenue Calculator
+        const usersSlider = document.getElementById('usersSlider');
+        const tasksSlider = document.getElementById('tasksSlider');
+        const feeSlider = document.getElementById('feeSlider');
+        const premiumSlider = document.getElementById('premiumSlider');
+
+        function updateRevenue() {
+            const users = parseInt(usersSlider.value);
+            const tasks = parseInt(tasksSlider.value);
+            const fee = parseInt(feeSlider.value);
+            const premium = parseInt(premiumSlider.value);
+
+            document.getElementById('usersValue').textContent = users.toLocaleString();
+            document.getElementById('tasksValue').textContent = tasks;
+            document.getElementById('feeValue').textContent = '₹' + fee;
+            document.getElementById('premiumValue').textContent = premium + '%';
+
+            const dailyTaskRevenue = users * tasks * fee;
+            const premiumUsers = Math.floor(users * premium / 100);
+            const monthlyPremiumRevenue = premiumUsers * 49;
+            const monthlyTaskRevenue = dailyTaskRevenue * 30;
+            const monthlyTotal = monthlyTaskRevenue + monthlyPremiumRevenue;
+            const annual = monthlyTotal * 12;
+
+            document.getElementById('dailyTaskRevenue').textContent = '₹' + dailyTaskRevenue.toLocaleString();
+            document.getElementById('monthlyPremiumRevenue').textContent = '₹' + monthlyPremiumRevenue.toLocaleString();
+            document.getElementById('monthlyTotalRevenue').textContent = '₹' + monthlyTotal.toLocaleString();
+            document.getElementById('annualRevenue').textContent = '₹' + (annual / 10000000).toFixed(1) + ' Cr';
+        }
+
+        usersSlider.addEventListener('input', updateRevenue);
+        tasksSlider.addEventListener('input', updateRevenue);
+        feeSlider.addEventListener('input', updateRevenue);
+        premiumSlider.addEventListener('input', updateRevenue);
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

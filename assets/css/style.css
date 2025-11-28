@@ -1,0 +1,27 @@
+/* Custom styles for Sahay */
+.mode-switcher {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.leaflet-container {
+    border-radius: 0.5rem;
+}
+
+#helpers-list > div:hover {
+    background-color: #f3f4f6;
+    cursor: pointer;
+}
+
+.voice-active {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}

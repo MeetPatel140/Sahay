@@ -3,437 +3,337 @@ let locationPermissionGranted = false;
 let locationCheckAttempted = false;
 
 function toggleMode(isHelperMode) {
-    const newMode = isHelperMode ? 'helper' : 'customer';
-    
-    fetch('api/set_mode.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `mode=${newMode}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            showToast('Mode switch failed', 'error');
-            document.getElementById('mode-toggle').checked = !isHelperMode;
-        }
-    });
+    try {
+        const newMode = isHelperMode ? 'helper' : 'customer';
+        fetch('api/set_mode.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `mode=${newMode}`
+        })
+        .then(r => r.json())
+        .then(d => d.success ? location.reload() : (showToast('Failed', 'error'), document.getElementById('mode-toggle').checked = !isHelperMode))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function postTask(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    if (userLocation) {
-        formData.append('lat', userLocation.lat);
-        formData.append('lng', userLocation.lng);
-    }
-    
-    fetch('api/post_task.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Task posted! Finding helpers...', 'success');
-            event.target.reset();
-            loadNearbyHelpers();
-        } else {
-            showToast('Failed: ' + data.message, 'error');
+    try {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        if (userLocation) {
+            formData.append('lat', userLocation.lat);
+            formData.append('lng', userLocation.lng);
         }
-    });
+        fetch('api/post_task.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => d.success ? (showToast('Task posted!', 'success'), event.target.reset(), loadNearbyHelpers()) : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function loadNearbyHelpers() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+    try {
+        if (!navigator.geolocation) { showLocationAlert(); return; }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude, lng = pos.coords.longitude;
             userLocation = {lat, lng};
             locationPermissionGranted = true;
             hideLocationAlert();
-            
             fetch(`api/get_helpers.php?lat=${lat}&lng=${lng}`)
-            .then(response => response.json())
+            .then(r => r.json())
             .then(helpers => {
-                const helpersList = document.getElementById('helpers-list');
-                if (!helpersList) return;
-                
-                if (helpers.length === 0) {
-                    helpersList.innerHTML = '<div class="text-gray-400 text-center py-4">No helpers nearby</div>';
-                    return;
-                }
-                
-                helpersList.innerHTML = '<h3 class="font-bold mb-3 text-gray-900">Available Helpers</h3>';
-                helpers.forEach(helper => {
-                    const helperDiv = document.createElement('div');
-                    helperDiv.className = 'helper-card';
-                    helperDiv.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="font-semibold text-gray-900">${helper.full_name}</div>
-                                <div class="text-sm text-gray-500">${helper.skill_tags}</div>
-                                <div class="text-sm text-teal-600 font-medium mt-1">₹${helper.base_rate}/hr • ${helper.distance.toFixed(1)}km</div>
-                            </div>
-                            <button onclick="contactHelper(${helper.user_id})" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm">
-                                <i class="fas fa-phone"></i>
-                            </button>
-                        </div>
-                    `;
-                    helpersList.appendChild(helperDiv);
+                const list = document.getElementById('helpers-list');
+                if (!list) return;
+                if (helpers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">No helpers nearby</div>'; return; }
+                list.innerHTML = '<h3 class="font-bold mb-3 text-gray-900">Available Helpers</h3>';
+                helpers.forEach(h => {
+                    const div = document.createElement('div');
+                    div.className = 'helper-card';
+                    div.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-semibold text-gray-900">${h.full_name}</div><div class="text-sm text-gray-500">${h.skill_tags}</div><div class="text-sm text-teal font-medium mt-1">₹${h.base_rate}/hr • ${h.distance.toFixed(1)}km</div></div><button type="button" class="bg-teal text-white px-4 py-2 rounded-full text-sm" onclick="contactHelper(${h.user_id})"><i class="fas fa-phone"></i></button></div>`;
+                    list.appendChild(div);
                 });
                 document.getElementById('helpers-panel').classList.remove('hidden');
-            });
-        }, function(error) {
-            locationPermissionGranted = false;
-            showLocationAlert();
-        });
-    } else {
-        showLocationAlert();
-    }
+            })
+            .catch(e => showToast('Error: ' + e.message, 'error'));
+        }, () => { locationPermissionGranted = false; showLocationAlert(); });
+    } catch(e) { console.error(e); }
 }
 
 function loadNearbyTasks() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+    try {
+        if (!navigator.geolocation) { showLocationAlert(); return; }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude, lng = pos.coords.longitude;
             locationPermissionGranted = true;
             hideLocationAlert();
-            
             fetch(`api/get_tasks.php?lat=${lat}&lng=${lng}`)
-            .then(response => response.json())
-            .then(data => {
-                const tasksList = document.getElementById('tasks-list');
-                if (!tasksList) return;
-                
-                if (data.success && data.tasks.length > 0) {
-                    tasksList.innerHTML = '';
-                    data.tasks.forEach(task => {
-                        const taskDiv = document.createElement('div');
-                        taskDiv.className = 'task-card';
-                        taskDiv.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <div class="font-bold text-lg text-teal-600">₹${task.agreed_price}</div>
-                                        <div class="text-xs text-gray-400">${task.distance.toFixed(1)}km</div>
-                                    </div>
-                                    <div class="text-sm text-gray-600 mb-2">${task.description}</div>
-                                    <div class="text-xs text-gray-400">by ${task.customer_name}</div>
-                                </div>
-                                <button onclick="acceptTask(${task.task_id})" class="bg-orange-500 text-white px-5 py-2 rounded-full text-sm font-medium">
-                                    Accept
-                                </button>
-                            </div>
-                        `;
-                        tasksList.appendChild(taskDiv);
+            .then(r => r.json())
+            .then(d => {
+                const list = document.getElementById('tasks-list');
+                if (!list) return;
+                if (d.success && d.tasks.length > 0) {
+                    list.innerHTML = '';
+                    d.tasks.forEach(t => {
+                        const div = document.createElement('div');
+                        div.className = 'task-card';
+                        div.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><div class="font-bold text-lg text-teal">₹${t.agreed_price}</div><div class="text-xs text-gray-400">${t.distance.toFixed(1)}km</div></div><div class="text-sm text-gray-600 mb-2">${t.description}</div><div class="text-xs text-gray-400">by ${t.customer_name}</div></div><button type="button" class="bg-orange-500 text-white px-5 py-2 rounded-full text-sm font-medium" onclick="acceptTask(${t.task_id})">Accept</button></div>`;
+                        list.appendChild(div);
                     });
                 } else {
-                    tasksList.innerHTML = '<div class="text-gray-400 text-center py-8"><i class="fas fa-search text-4xl mb-3 opacity-30"></i><div class="text-sm">No tasks nearby</div></div>';
+                    list.innerHTML = '<div class="text-gray-400 text-center py-8"><i class="fas fa-search text-4xl mb-3 opacity-30"></i><div class="text-sm">No tasks nearby</div></div>';
                 }
-            });
-        }, function(error) {
-            locationPermissionGranted = false;
-            showLocationAlert();
-        });
-    } else {
-        showLocationAlert();
-    }
+            })
+            .catch(e => showToast('Error: ' + e.message, 'error'));
+        }, () => { locationPermissionGranted = false; showLocationAlert(); });
+    } catch(e) { console.error(e); }
 }
 
 function acceptTask(taskId) {
-    fetch('api/accept_task.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `task_id=${taskId}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Task accepted!', 'success');
-            loadNearbyTasks();
-        } else {
-            showToast('Failed: ' + data.message, 'error');
-        }
-    });
+    try {
+        fetch('api/accept_task.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `task_id=${taskId}` })
+        .then(r => r.json())
+        .then(d => d.success ? (showToast('Task accepted!', 'success'), loadNearbyTasks()) : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function completeTask(taskId) {
-    fetch('api/complete_task.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `task_id=${taskId}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Task completed! Payment received', 'success');
-            loadMyTasks();
-        } else {
-            showToast('Failed: ' + data.message, 'error');
-        }
-    });
+    try {
+        fetch('api/complete_task.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `task_id=${taskId}` })
+        .then(r => r.json())
+        .then(d => d.success ? (showToast('Task completed!', 'success'), loadMyTasks()) : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function cancelTask(taskId) {
-    if (confirm('Cancel this task?')) {
-        fetch('api/cancel_task.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `task_id=${taskId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Task cancelled', 'success');
-                loadMyTasks();
-            } else {
-                showToast('Failed: ' + data.message, 'error');
-            }
-        });
-    }
+    try {
+        if (!confirm('Cancel this task?')) return;
+        fetch('api/cancel_task.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `task_id=${taskId}` })
+        .then(r => r.json())
+        .then(d => d.success ? (showToast('Task cancelled', 'success'), loadMyTasks()) : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function rateHelper(taskId) {
-    const rating = prompt('Rate helper (1-5 stars):');
-    if (rating && rating >= 1 && rating <= 5) {
-        fetch('api/rate_helper.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `task_id=${taskId}&rating=${rating}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Rating submitted!', 'success');
-            } else {
-                showToast('Failed: ' + data.message, 'error');
-            }
-        });
-    }
+    try {
+        const rating = prompt('Rate helper (1-5 stars):');
+        if (!rating || rating < 1 || rating > 5) return;
+        fetch('api/rate_helper.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `task_id=${taskId}&rating=${rating}` })
+        .then(r => r.json())
+        .then(d => d.success ? showToast('Rating submitted!', 'success') : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function updateLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+    try {
+        if (!navigator.geolocation) { showLocationAlert(); return; }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude, lng = pos.coords.longitude;
             locationPermissionGranted = true;
             hideLocationAlert();
-            
-            fetch('api/update_location.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `lat=${lat}&lng=${lng}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Location updated', 'success');
-                    loadNearbyTasks();
-                } else {
-                    showToast('Failed: ' + data.message, 'error');
-                }
-            });
-        }, function(error) {
-            locationPermissionGranted = false;
-            showLocationAlert();
-        });
-    } else {
-        showLocationAlert();
-    }
+            fetch('api/update_location.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `lat=${lat}&lng=${lng}` })
+            .then(r => r.json())
+            .then(d => d.success && loadNearbyTasks())
+            .catch(e => console.error(e));
+        }, () => { locationPermissionGranted = false; showLocationAlert(); });
+    } catch(e) { console.error(e); }
 }
 
 function loadMyTasks() {
-    fetch('api/my_tasks.php')
-    .then(response => response.json())
-    .then(data => {
-        const myTasksList = document.getElementById('my-tasks-list');
-        if (!myTasksList) return;
-        
-        if (data.success && data.tasks.length > 0) {
-            myTasksList.innerHTML = '';
-            data.tasks.forEach(task => {
-                const taskDiv = document.createElement('div');
-                taskDiv.className = 'task-card';
-                
-                const statusStyles = {
-                    'pending': 'status-pending',
-                    'accepted': 'status-accepted',
-                    'in_progress': 'status-in_progress',
-                    'completed': 'status-completed',
-                    'cancelled': 'status-cancelled'
-                };
-                
-                let actions = '';
-                if (task.status === 'in_progress' && task.my_role === 'helper') {
-                    actions = `<button onclick="completeTask(${task.task_id})" class="text-xs bg-green-500 text-white px-3 py-1 rounded-full mt-2">Complete</button>`;
-                }
-                if (task.status === 'pending' || task.status === 'accepted') {
-                    actions += `<button onclick="cancelTask(${task.task_id})" class="text-xs bg-red-500 text-white px-3 py-1 rounded-full mt-2 ml-2">Cancel</button>`;
-                }
-                if (task.status === 'completed' && task.my_role === 'customer') {
-                    actions += `<button onclick="rateHelper(${task.task_id})" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full mt-2 ml-2">Rate</button>`;
-                }
-                
-                taskDiv.innerHTML = `
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="font-bold text-teal-600">₹${task.agreed_price}</span>
-                            <span class="text-xs px-2 py-1 rounded-full ${statusStyles[task.status]}">${task.status}</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-1">${task.description}</div>
-                        <div class="text-xs text-gray-400">${new Date(task.created_at).toLocaleDateString()}</div>
-                        ${actions}
-                    </div>
-                `;
-                myTasksList.appendChild(taskDiv);
-            });
-        } else {
-            myTasksList.innerHTML = '<div class="text-gray-400 text-center py-4">No tasks yet</div>';
-        }
-    });
+    try {
+        fetch('api/my_tasks.php')
+        .then(r => r.json())
+        .then(d => {
+            const list = document.getElementById('my-tasks-list');
+            if (!list) return;
+            if (d.success && d.tasks.length > 0) {
+                list.innerHTML = '';
+                d.tasks.forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'task-card';
+                    const statusStyles = {'pending': 'status-pending', 'accepted': 'status-accepted', 'in_progress': 'status-in_progress', 'completed': 'status-completed', 'cancelled': 'status-cancelled'};
+                    let actions = '';
+                    if (t.status === 'in_progress' && t.my_role === 'helper') actions = `<button type="button" class="text-xs bg-green-500 text-white px-3 py-1 rounded-full mt-2" onclick="completeTask(${t.task_id})">Complete</button>`;
+                    if (t.status === 'pending' || t.status === 'accepted') actions += `<button type="button" class="text-xs bg-red-500 text-white px-3 py-1 rounded-full mt-2 ml-2" onclick="cancelTask(${t.task_id})">Cancel</button>`;
+                    if (t.status === 'completed' && t.my_role === 'customer') actions += `<button type="button" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full mt-2 ml-2" onclick="rateHelper(${t.task_id})">Rate</button>`;
+                    div.innerHTML = `<div><div class="flex items-center gap-2 mb-2"><span class="font-bold text-teal">₹${t.agreed_price}</span><span class="text-xs px-2 py-1 rounded-full ${statusStyles[t.status]}">${t.status}</span></div><div class="text-sm text-gray-600 mb-1">${t.description}</div><div class="text-xs text-gray-400">${new Date(t.created_at).toLocaleDateString()}</div>${actions}</div>`;
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = '<div class="text-gray-400 text-center py-4">No tasks yet</div>';
+            }
+        })
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function loadNotifications() {
-    fetch('api/get_notifications.php')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.notifications.length > 0) {
-            const badge = document.getElementById('notif-badge');
-            if (badge) {
-                badge.textContent = data.notifications.length;
-                badge.classList.remove('hidden');
+    try {
+        fetch('api/get_notifications.php')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success && d.notifications.length > 0) {
+                const badge = document.getElementById('notif-badge');
+                if (badge) { badge.textContent = d.notifications.length; badge.classList.remove('hidden'); }
             }
-        }
-    });
+        })
+        .catch(e => console.error(e));
+    } catch(e) { console.error(e); }
 }
 
-function contactHelper(helperId) {
-    showToast('Calling helper...', 'info');
-}
+function contactHelper(helperId) { showToast('Calling helper...', 'info'); }
 
-function addMoney() {
-    document.getElementById('wallet-panel').classList.remove('hidden');
+function openWallet() {
+    try {
+        const panel = document.getElementById('wallet-panel');
+        if (panel) panel.classList.remove('hidden');
+    } catch(e) { console.error(e); }
 }
 
 function closeWallet() {
-    document.getElementById('wallet-panel').classList.add('hidden');
+    try {
+        const panel = document.getElementById('wallet-panel');
+        if (panel) panel.classList.add('hidden');
+    } catch(e) { console.error(e); }
 }
 
 function processAddMoney(event) {
-    event.preventDefault();
-    const amount = document.getElementById('add-amount').value;
-    
-    fetch('api/add_money.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `amount=${amount}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(`₹${amount} added to wallet`, 'success');
-            setTimeout(() => {
-                closeWallet();
-                location.reload();
-            }, 1500);
-        } else {
-            showToast('Failed: ' + data.message, 'error');
-        }
-    });
+    try {
+        event.preventDefault();
+        const amount = document.getElementById('add-amount').value;
+        fetch('api/add_money.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `amount=${amount}` })
+        .then(r => r.json())
+        .then(d => d.success ? (showToast(`₹${amount} added!`, 'success'), setTimeout(() => { closeWallet(); location.reload(); }, 1500)) : showToast('Failed: ' + d.message, 'error'))
+        .catch(e => showToast('Error: ' + e.message, 'error'));
+    } catch(e) { console.error(e); }
 }
 
 function openMenu() {
-    document.getElementById('menu').classList.remove('hidden');
+    try {
+        const menu = document.getElementById('menu');
+        if (menu) menu.classList.remove('hidden');
+    } catch(e) { console.error(e); }
 }
 
 function closeMenu() {
-    document.getElementById('menu').classList.add('hidden');
+    try {
+        const menu = document.getElementById('menu');
+        if (menu) menu.classList.add('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function openMyTasks() {
+    try {
+        closeMenu();
+        loadMyTasks();
+        const panel = document.getElementById('my-tasks-panel');
+        if (panel) panel.classList.remove('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function closeMyTasks() {
+    try {
+        const panel = document.getElementById('my-tasks-panel');
+        if (panel) panel.classList.add('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function openSettings() {
+    try {
+        closeMenu();
+        const panel = document.getElementById('settings-panel');
+        if (panel) panel.classList.remove('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function closeSettings() {
+    try {
+        const panel = document.getElementById('settings-panel');
+        if (panel) panel.classList.add('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function openNotifications() {
+    try {
+        const panel = document.getElementById('notif-panel');
+        if (panel) panel.classList.remove('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function closeNotifications() {
+    try {
+        const panel = document.getElementById('notif-panel');
+        if (panel) panel.classList.add('hidden');
+    } catch(e) { console.error(e); }
+}
+
+function changeLanguage(lang) {
+    try {
+        localStorage.setItem('app_language', lang);
+        showToast('Language changed', 'success');
+        closeSettings();
+    } catch(e) { console.error(e); }
+}
+
+function startListening() {
+    try {
+        if (!('webkitSpeechRecognition' in window)) { showToast('Voice not supported', 'error'); return; }
+        const recognition = new webkitSpeechRecognition();
+        const appLang = localStorage.getItem('app_language') || 'en-IN';
+        recognition.lang = appLang;
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        const statusText = document.getElementById('status-text');
+        const micBtn = document.querySelector('[onclick="startListening()"]');
+        recognition.onstart = () => { if (micBtn) micBtn.classList.add('voice-active'); if (statusText) statusText.textContent = 'Listening...'; };
+        recognition.onresult = (e) => { document.getElementById('task_input').value = e.results[0][0].transcript; if (statusText) statusText.textContent = 'Got it!'; };
+        recognition.onerror = () => { if (statusText) statusText.textContent = ''; if (micBtn) micBtn.classList.remove('voice-active'); };
+        recognition.onend = () => { if (micBtn) micBtn.classList.remove('voice-active'); setTimeout(() => { if (statusText) statusText.textContent = ''; }, 2000); };
+        recognition.start();
+    } catch(e) { console.error(e); }
 }
 
 function showLocationAlert() {
-    const alertDiv = document.getElementById('location-alert');
-    if (alertDiv && !locationCheckAttempted) {
-        alertDiv.classList.remove('hidden');
-    }
+    try {
+        const alertDiv = document.getElementById('location-alert');
+        if (alertDiv && !locationCheckAttempted) alertDiv.classList.remove('hidden');
+    } catch(e) { console.error(e); }
 }
 
 function hideLocationAlert() {
-    const alertDiv = document.getElementById('location-alert');
-    if (alertDiv) {
-        alertDiv.classList.add('hidden');
-    }
+    try {
+        const alertDiv = document.getElementById('location-alert');
+        if (alertDiv) alertDiv.classList.add('hidden');
+    } catch(e) { console.error(e); }
 }
 
 function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium ${
-        type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-gray-900 text-white'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s';
-        setTimeout(() => toast.remove(), 300);
-    }, 2500);
+    try {
+        const toast = document.createElement('div');
+        toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium ${type === 'success' ? 'bg-green-500 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-900 text-white'}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 2500);
+    } catch(e) { console.error(e); }
 }
 
 function checkLocationPermission() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                locationPermissionGranted = true;
-                locationCheckAttempted = true;
-                hideLocationAlert();
-            },
-            function(error) {
-                locationPermissionGranted = false;
-                locationCheckAttempted = true;
-                if (error.code === error.PERMISSION_DENIED) {
-                    showLocationAlert();
-                }
-            }
-        );
-    }
+    try {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(() => { locationPermissionGranted = true; locationCheckAttempted = true; hideLocationAlert(); }, () => { locationPermissionGranted = false; locationCheckAttempted = true; showLocationAlert(); });
+    } catch(e) { console.error(e); }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkLocationPermission();
-    
-    if (!localStorage.getItem('app_language')) {
-        localStorage.setItem('app_language', 'en-IN');
-    }
-    
-    if (document.getElementById('customer-view')) {
-        setTimeout(() => loadNearbyHelpers(), 1000);
-    }
-    
-    if (document.getElementById('helper-view')) {
-        loadNearbyTasks();
-        updateLocation();
-    }
-    
-    loadNotifications();
-    
-    setInterval(() => {
-        if (document.getElementById('helper-view')) {
-            loadNearbyTasks();
-        }
+    try {
+        checkLocationPermission();
+        if (!localStorage.getItem('app_language')) localStorage.setItem('app_language', 'en-IN');
+        if (document.getElementById('customer-view')) setTimeout(() => loadNearbyHelpers(), 1000);
+        if (document.getElementById('helper-view')) { loadNearbyTasks(); updateLocation(); }
         loadNotifications();
-    }, 15000);
-    
-    document.addEventListener('click', function(e) {
-        const menu = document.getElementById('menu');
-        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('[onclick="openMenu()"]')) {
-            closeMenu();
-        }
-    });
+        setInterval(() => { if (document.getElementById('helper-view')) loadNearbyTasks(); loadNotifications(); }, 15000);
+    } catch(e) { console.error(e); }
 });

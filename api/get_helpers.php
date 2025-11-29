@@ -1,22 +1,37 @@
 <?php
+session_start();
 include '../config/db_connect.php';
+header('Content-Type: application/json');
 
-$user_lat = $_GET['lat'];
-$user_lng = $_GET['lng'];
-$radius_km = 5;
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
+}
 
-$sql = "SELECT u.full_name, hp.skill_tags, hp.base_rate, 
-       ( 6371 * acos( cos( radians($user_lat) ) * cos( radians( hp.current_lat ) ) 
-       * cos( radians( hp.current_lng ) - radians($user_lng) ) + sin( radians($user_lat) ) 
+$user_lat = floatval($_GET['lat'] ?? 0);
+$user_lng = floatval($_GET['lng'] ?? 0);
+$radius_km = 10;
+
+if ($user_lat == 0 || $user_lng == 0) {
+    echo json_encode([]);
+    exit;
+}
+
+$sql = "SELECT u.user_id, u.full_name, hp.skill_tags, hp.base_rate, hp.rating, hp.total_jobs,
+       ( 6371 * acos( cos( radians(?) ) * cos( radians( hp.current_lat ) ) 
+       * cos( radians( hp.current_lng ) - radians(?) ) + sin( radians(?) ) 
        * sin( radians( hp.current_lat ) ) ) ) AS distance 
        FROM helper_profiles hp
        JOIN users u ON hp.user_id = u.user_id
-       WHERE hp.is_available = TRUE
-       HAVING distance < $radius_km 
+       WHERE hp.is_available = TRUE AND hp.current_lat != 0 AND hp.current_lng != 0
+       HAVING distance < ? 
        ORDER BY distance ASC 
        LIMIT 10";
 
-$result = $conn->query($sql);
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("dddd", $user_lat, $user_lng, $user_lat, $radius_km);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $helpers = [];
 while($row = $result->fetch_assoc()) {
@@ -24,4 +39,6 @@ while($row = $result->fetch_assoc()) {
 }
 
 echo json_encode($helpers);
+$stmt->close();
+$conn->close();
 ?>

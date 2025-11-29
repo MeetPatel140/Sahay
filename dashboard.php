@@ -26,40 +26,51 @@ $user = $stmt->get_result()->fetch_assoc();
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .btn-teal { background-color: #00796B; }
+        .btn-teal:hover { background-color: #00695C; }
+        .text-teal { color: #00796B; }
+        .bg-teal { background-color: #00796B; }
+    </style>
 </head>
 <body class="overflow-hidden">
 
     <div id="location-alert" class="hidden fixed top-0 left-0 right-0 bg-orange-500 text-white p-2 text-center z-50 text-sm">
         <i class="fas fa-location-arrow mr-1"></i>Enable location
-        <button onclick="checkLocationPermission()" class="ml-2 underline font-medium">Enable</button>
+        <button type="button" onclick="checkLocationPermission()" class="ml-2 underline font-medium">Enable</button>
     </div>
     
     <div id="map" class="absolute inset-0 z-0"></div>
     
     <div class="fixed top-0 left-0 right-0 z-40 p-4">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <button onclick="openMenu()" class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center">
+            <button type="button" onclick="openMenu()" class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center">
                 <i class="fas fa-bars text-gray-700"></i>
             </button>
             
             <?php if ($user['user_type'] === 'helper'): ?>
-            <div class="flex items-center bg-white rounded-full shadow-lg px-4 py-2">
-                <span class="text-sm font-medium mr-3 <?php echo $active_mode === 'customer' ? 'text-teal-600' : 'text-gray-400'; ?>">SEEK</span>
+            <div class="flex items-center bg-white rounded-full shadow-lg px-3 py-2 gap-2">
+                <span class="text-xs font-bold text-teal">SEEK</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="mode-toggle" onchange="toggleMode(this.checked)" 
                         <?php echo ($active_mode === 'helper') ? 'checked' : ''; ?> class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-teal-600 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-teal after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
                 </label>
-                <span class="text-sm font-medium ml-3 <?php echo $active_mode === 'helper' ? 'text-teal-600' : 'text-gray-400'; ?>">HELP</span>
+                <span class="text-xs font-bold text-teal">HELP</span>
+            </div>
+            <?php else: ?>
+            <div class="bg-white rounded-full shadow-lg px-4 py-2">
+                <span class="text-xs font-bold text-teal">SEEK</span>
             </div>
             <?php endif; ?>
             
             <div class="flex items-center gap-2">
-                <button onclick="document.getElementById('notif-panel').classList.remove('hidden')" class="relative w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
+                <button type="button" onclick="openNotifications()" class="relative w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
                     <i class="fas fa-bell text-gray-700"></i>
-                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
                 </button>
-                <button onclick="addMoney()" class="px-4 py-2 bg-teal-600 text-white rounded-full shadow-lg text-sm font-bold">
+                <button type="button" onclick="openWallet()" class="px-3 py-2 bg-teal text-white rounded-full shadow-lg text-xs font-bold flex items-center gap-1">
+                    <i class="fas fa-wallet"></i>
                     ₹<?php echo number_format($user['wallet_balance'], 0); ?>
                 </button>
             </div>
@@ -67,12 +78,12 @@ $user = $stmt->get_result()->fetch_assoc();
     </div>
     
     <div id="menu" class="hidden fixed top-0 left-0 w-64 h-full bg-white shadow-2xl z-50 p-6">
-        <button onclick="closeMenu()" class="absolute top-4 right-4 text-gray-500">
+        <button type="button" onclick="closeMenu()" class="absolute top-4 right-4 text-gray-500">
             <i class="fas fa-times text-xl"></i>
         </button>
         <div class="mt-8">
             <div class="flex items-center mb-6">
-                <div class="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div class="w-12 h-12 bg-teal text-white rounded-full flex items-center justify-center font-bold text-lg">
                     <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
                 </div>
                 <div class="ml-3">
@@ -81,11 +92,11 @@ $user = $stmt->get_result()->fetch_assoc();
                 </div>
             </div>
             <div class="space-y-4">
-                <button onclick="openSettings()" class="w-full text-left flex items-center text-gray-700 hover:text-teal-600">
+                <button type="button" onclick="openSettings()" class="w-full text-left flex items-center text-gray-700 hover:text-teal">
                     <i class="fas fa-cog w-6"></i>
                     <span class="ml-3">Settings</span>
                 </button>
-                <button onclick="document.getElementById('my-tasks-panel').classList.remove('hidden')" class="w-full text-left flex items-center text-gray-700 hover:text-teal-600">
+                <button type="button" onclick="openMyTasks()" class="w-full text-left flex items-center text-gray-700 hover:text-teal">
                     <i class="fas fa-history w-6"></i>
                     <span class="ml-3">My Tasks</span>
                 </button>
@@ -114,12 +125,12 @@ $user = $stmt->get_result()->fetch_assoc();
                     <span id="status-text" class="block text-center text-sm text-gray-500 mb-4"></span>
                     
                     <textarea id="task_input" name="description" placeholder="Type your need here..." 
-                             class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-sm focus:border-teal-500 focus:outline-none" rows="2" required></textarea>
+                             class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-sm focus:border-teal focus:outline-none" rows="2" required></textarea>
                     
                     <div class="flex gap-3">
                         <input type="number" name="budget" placeholder="Budget ₹" 
-                               class="flex-1 p-4 border-2 border-gray-100 rounded-2xl text-sm focus:border-teal-500 focus:outline-none" required>
-                        <button type="submit" class="bg-teal-600 text-white px-8 py-4 rounded-2xl hover:bg-teal-700 transition-colors font-medium">
+                               class="flex-1 p-4 border-2 border-gray-100 rounded-2xl text-sm focus:border-teal focus:outline-none" required>
+                        <button type="submit" class="bg-teal text-white px-8 py-4 rounded-2xl hover:bg-opacity-90 transition-colors font-medium">
                             <i class="fas fa-search"></i> Find
                         </button>
                     </div>
@@ -164,7 +175,7 @@ $user = $stmt->get_result()->fetch_assoc();
     </div>
     <?php endif; ?>
 
-    <div id="my-tasks-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="this.classList.add('hidden')">
+    <div id="my-tasks-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="closeMyTasks()">
         <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto" onclick="event.stopPropagation()">
             <div class="max-w-md mx-auto p-6">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
@@ -182,7 +193,7 @@ $user = $stmt->get_result()->fetch_assoc();
                 <div class="space-y-3">
                     <div>
                         <label class="text-sm text-gray-600 mb-2 block">App Language</label>
-                        <select onchange="changeLanguage(this.value)" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-teal-500 focus:outline-none">
+                        <select onchange="changeLanguage(this.value)" class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-teal focus:outline-none">
                             <option value="en-IN">English (India)</option>
                             <option value="hi-IN">हिंदी (Hindi)</option>
                             <option value="bn-IN">বাংলা (Bengali)</option>
@@ -200,11 +211,11 @@ $user = $stmt->get_result()->fetch_assoc();
         <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl" onclick="event.stopPropagation()">
             <div class="max-w-md mx-auto p-6">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h3 class="font-bold mb-4 text-gray-900"><i class="fas fa-wallet text-teal-600 mr-2"></i>Add Money</h3>
+                <h3 class="font-bold mb-4 text-gray-900"><i class="fas fa-wallet text-teal mr-2"></i>Add Money</h3>
                 <form onsubmit="processAddMoney(event)">
                     <input type="number" id="add-amount" placeholder="Enter amount" min="10" 
-                           class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 focus:border-teal-500 focus:outline-none" required>
-                    <button type="submit" class="w-full bg-teal-600 text-white p-4 rounded-2xl font-medium">
+                           class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 focus:border-teal focus:outline-none" required>
+                    <button type="submit" class="w-full bg-teal text-white p-4 rounded-2xl font-medium">
                         Add to Wallet
                     </button>
                 </form>
@@ -212,7 +223,7 @@ $user = $stmt->get_result()->fetch_assoc();
         </div>
     </div>
 
-    <div id="notif-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="this.classList.add('hidden')">
+    <div id="notif-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="closeNotifications()">
         <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto" onclick="event.stopPropagation()">
             <div class="max-w-md mx-auto p-6">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
@@ -224,8 +235,7 @@ $user = $stmt->get_result()->fetch_assoc();
         </div>
     </div>
 
-    <script src="assets/js/map_logic.js"></script>
-    <script src="assets/js/voice_logic.js"></script>
     <script src="assets/js/app.js"></script>
+    <script src="assets/js/map_logic.js"></script>
 </body>
 </html>

@@ -1,27 +1,143 @@
-/* Custom styles for Sahay */
+/* Sahay Custom Styles */
+
 .mode-switcher {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .leaflet-container {
     border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-#helpers-list > div:hover {
-    background-color: #f3f4f6;
+#helpers-list > div:hover,
+#tasks-list > div:hover,
+#my-tasks-list > div:hover {
+    background-color: #f9fafb;
     cursor: pointer;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
 }
 
 .voice-active {
     animation: pulse 1s infinite;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
 }
 
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.02); }
     100% { transform: scale(1); }
+}
+
+/* Custom marker styles */
+.user-location-marker,
+.helper-marker {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Task status badges */
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.status-accepted { background-color: #dbeafe; color: #1e40af; }
+.status-in_progress { background-color: #e0e7ff; color: #5b21b6; }
+.status-completed { background-color: #d1fae5; color: #065f46; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+    
+    #map {
+        height: 250px !important;
+    }
+    
+    .mode-switcher {
+        padding: 0.75rem;
+    }
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Button hover effects */
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+/* Form styling */
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Success/Error messages */
+.alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* Helper card styling */
+.helper-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.helper-card:hover {
+    border-left-color: #10b981;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Task card styling */
+.task-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.task-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #10b981, #059669);
+}
+
+/* Wallet balance styling */
+.wallet-balance {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
 }

@@ -13,9 +13,9 @@ function toggleMode(isHelperMode) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.reload();
+            location.reload();
         } else {
-            alert("Could not switch mode. Please try again.");
+            showToast('Mode switch failed', 'error');
             document.getElementById('mode-toggle').checked = !isHelperMode;
         }
     });
@@ -78,7 +78,7 @@ function loadNearbyHelpers() {
                                 <div class="text-sm text-teal-600 font-medium mt-1">₹${helper.base_rate}/hr • ${helper.distance.toFixed(1)}km</div>
                             </div>
                             <button onclick="contactHelper('${helper.full_name}')" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm">
-                                Call
+                                <i class="fas fa-phone"></i>
                             </button>
                         </div>
                     `;
@@ -177,10 +177,10 @@ function updateLocation() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('Location updated successfully! You are now visible to customers.', 'success');
+                    showToast('Location updated', 'success');
                     loadNearbyTasks();
                 } else {
-                    showToast('Failed to update location: ' + data.message, 'error');
+                    showToast('Failed: ' + data.message, 'error');
                 }
             });
         }, function(error) {
@@ -232,15 +232,39 @@ function loadMyTasks() {
 }
 
 function contactHelper(helperName) {
-    alert(`Contact feature coming soon! Helper: ${helperName}`);
+    showToast(`Calling ${helperName}...`, 'info');
+}
+
+function addMoney() {
+    document.getElementById('wallet-panel').classList.remove('hidden');
+}
+
+function closeWallet() {
+    document.getElementById('wallet-panel').classList.add('hidden');
+}
+
+function processAddMoney(event) {
+    event.preventDefault();
+    const amount = document.getElementById('add-amount').value;
+    showToast(`Adding ₹${amount} to wallet...`, 'success');
+    setTimeout(() => {
+        closeWallet();
+        location.reload();
+    }, 1500);
+}
+
+function openMenu() {
+    document.getElementById('menu').classList.remove('hidden');
+}
+
+function closeMenu() {
+    document.getElementById('menu').classList.add('hidden');
 }
 
 function showLocationAlert() {
-    if (!locationCheckAttempted) {
-        const alertDiv = document.getElementById('location-alert');
-        if (alertDiv) {
-            alertDiv.classList.remove('hidden');
-        }
+    const alertDiv = document.getElementById('location-alert');
+    if (alertDiv && !locationCheckAttempted) {
+        alertDiv.classList.remove('hidden');
     }
 }
 
@@ -290,6 +314,10 @@ function checkLocationPermission() {
 document.addEventListener('DOMContentLoaded', function() {
     checkLocationPermission();
     
+    if (!localStorage.getItem('app_language')) {
+        localStorage.setItem('app_language', 'en-IN');
+    }
+    
     if (document.getElementById('customer-view')) {
         setTimeout(() => loadNearbyHelpers(), 1000);
     }
@@ -304,4 +332,11 @@ document.addEventListener('DOMContentLoaded', function() {
             loadNearbyTasks();
         }
     }, 15000);
+    
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('menu');
+        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('[onclick="openMenu()"]')) {
+            closeMenu();
+        }
+    });
 });

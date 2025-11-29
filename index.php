@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sahay - Local Help Network</title>
+    <title>Sahayak - Local Help Network</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-md w-96">
-            <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">Sahay</h1>
+            <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">Sahayak</h1>
             
             <?php if(isset($_GET['error'])): ?>
                 <div class="bg-red-100 text-red-700 p-3 rounded mb-4">Invalid credentials</div>

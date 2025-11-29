@@ -1,4 +1,4 @@
-Sahay: Technical Specification & Implementation Guide
+Sahayak: Technical Specification & Implementation Guide
 
 Version: 1.1 (Mode Switch Architecture Update) | Stack: PHP, MySQL, HTML, CSS, JS
 
@@ -70,7 +70,7 @@ For MVP, verify via Email or "Mock" OTP (Fixed 1234) to save money.
 
 The dashboards have been consolidated for an efficient single-app architecture.
 
-sahay/
+sahayak/
 ├── assets/
 │   ├── css/
 │   │   └── style.css       # Custom styles
@@ -91,7 +91,7 @@ sahay/
 ├── index.php               # Landing Page / Login
 ├── dashboard.php           # CONSOLIDATED: Renders Customer or Helper UI
 └── sql/
-    └── sahay.sql           # Database import file
+    └── sahayak.sql         # Database import file
 
 
 4. Database Schema (MySQL)

@@ -138,10 +138,12 @@ $user = $stmt->get_result()->fetch_assoc();
             </div>
         </div>
         
-        <div id="helpers-panel" class="hidden fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto">
-            <div class="max-w-md mx-auto p-6">
-                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <div id="helpers-list"></div>
+        <div id="helpers-panel" class="hidden fixed inset-0 bg-black/50 z-40" onclick="closeHelpersPanel()">
+            <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto" onclick="event.stopPropagation()">
+                <div class="max-w-md mx-auto p-6">
+                    <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <div id="helpers-list"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -235,7 +237,290 @@ $user = $stmt->get_result()->fetch_assoc();
         </div>
     </div>
 
-    <script src="assets/js/app.js"></script>
-    <script src="assets/js/map_logic.js"></script>
+    <script>
+        // Test if scripts are loading
+        console.log('Dashboard loaded');
+        
+        // Inline critical functions to ensure they work
+        function openMenu() {
+            console.log('Opening menu');
+            const menu = document.getElementById('menu');
+            if (menu) {
+                menu.classList.remove('hidden');
+                console.log('Menu opened');
+            } else {
+                console.error('Menu element not found');
+            }
+        }
+        
+        function closeMenu() {
+            console.log('Closing menu');
+            const menu = document.getElementById('menu');
+            if (menu) {
+                menu.classList.add('hidden');
+                console.log('Menu closed');
+            }
+        }
+        
+        function openWallet() {
+            console.log('Opening wallet');
+            const panel = document.getElementById('wallet-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                console.log('Wallet opened');
+            }
+        }
+        
+        function closeWallet() {
+            console.log('Closing wallet');
+            const panel = document.getElementById('wallet-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+                console.log('Wallet closed');
+            }
+        }
+        
+        function openNotifications() {
+            console.log('Opening notifications');
+            const panel = document.getElementById('notif-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                console.log('Notifications opened');
+            }
+        }
+        
+        function closeNotifications() {
+            console.log('Closing notifications');
+            const panel = document.getElementById('notif-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+                console.log('Notifications closed');
+            }
+        }
+        
+        function openSettings() {
+            console.log('Opening settings');
+            closeMenu();
+            const panel = document.getElementById('settings-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                console.log('Settings opened');
+            }
+        }
+        
+        function closeSettings() {
+            console.log('Closing settings');
+            const panel = document.getElementById('settings-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+                console.log('Settings closed');
+            }
+        }
+        
+        function openMyTasks() {
+            console.log('Opening my tasks');
+            closeMenu();
+            const panel = document.getElementById('my-tasks-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                console.log('My tasks opened');
+            }
+        }
+        
+        function closeMyTasks() {
+            console.log('Closing my tasks');
+            const panel = document.getElementById('my-tasks-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+                console.log('My tasks closed');
+            }
+        }
+        
+        function closeHelpersPanel() {
+            console.log('Closing helpers panel');
+            const panel = document.getElementById('helpers-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+                console.log('Helpers panel closed');
+            }
+        }
+        
+        function toggleMode(isHelperMode) {
+            console.log('Toggling mode:', isHelperMode);
+            const newMode = isHelperMode ? 'helper' : 'customer';
+            fetch('api/set_mode.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `mode=${newMode}`
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to switch mode');
+                    document.getElementById('mode-toggle').checked = !isHelperMode;
+                }
+            })
+            .catch(e => {
+                console.error('Mode toggle error:', e);
+                alert('Error switching mode');
+                document.getElementById('mode-toggle').checked = !isHelperMode;
+            });
+        }
+        
+        function startListening() {
+            console.log('Starting voice recognition');
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Voice not supported in this browser');
+                return;
+            }
+            
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-IN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            const statusText = document.getElementById('status-text');
+            const micBtn = document.querySelector('[onclick="startListening()"]');
+            
+            recognition.onstart = () => {
+                console.log('Voice recognition started');
+                if (micBtn) micBtn.style.backgroundColor = '#ff6b35';
+                if (statusText) statusText.textContent = 'Listening...';
+            };
+            
+            recognition.onresult = (e) => {
+                console.log('Voice result:', e.results[0][0].transcript);
+                const taskInput = document.getElementById('task_input');
+                if (taskInput) {
+                    taskInput.value = e.results[0][0].transcript;
+                }
+                if (statusText) statusText.textContent = 'Got it!';
+            };
+            
+            recognition.onerror = (e) => {
+                console.error('Voice recognition error:', e);
+                if (statusText) statusText.textContent = 'Error occurred';
+                if (micBtn) micBtn.style.backgroundColor = '';
+            };
+            
+            recognition.onend = () => {
+                console.log('Voice recognition ended');
+                if (micBtn) micBtn.style.backgroundColor = '';
+                setTimeout(() => {
+                    if (statusText) statusText.textContent = '';
+                }, 2000);
+            };
+            
+            recognition.start();
+        }
+        
+        function postTask(event) {
+            console.log('Posting task');
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            
+            fetch('api/post_task.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(d => {
+                console.log('Task post result:', d);
+                if (d.success) {
+                    alert('Task posted successfully!');
+                    event.target.reset();
+                } else {
+                    alert('Failed to post task: ' + (d.message || 'Unknown error'));
+                }
+            })
+            .catch(e => {
+                console.error('Task post error:', e);
+                alert('Error posting task');
+            });
+        }
+        
+        function processAddMoney(event) {
+            console.log('Processing add money');
+            event.preventDefault();
+            
+            const amount = document.getElementById('add-amount').value;
+            if (!amount || amount < 10) {
+                alert('Please enter amount of at least ₹10');
+                return;
+            }
+            
+            fetch('api/add_money.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `amount=${amount}`
+            })
+            .then(r => r.json())
+            .then(d => {
+                console.log('Add money result:', d);
+                if (d.success) {
+                    alert(`₹${amount} added to wallet!`);
+                    setTimeout(() => {
+                        closeWallet();
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert('Failed to add money: ' + (d.message || 'Unknown error'));
+                }
+            })
+            .catch(e => {
+                console.error('Add money error:', e);
+                alert('Error adding money');
+            });
+        }
+        
+        function changeLanguage(lang) {
+            console.log('Changing language to:', lang);
+            localStorage.setItem('app_language', lang);
+            alert('Language changed to ' + lang);
+            closeSettings();
+        }
+        
+        function checkLocationPermission() {
+            console.log('Checking location permission');
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported');
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('Location granted:', position.coords);
+                    const alertDiv = document.getElementById('location-alert');
+                    if (alertDiv) alertDiv.classList.add('hidden');
+                },
+                (error) => {
+                    console.error('Location denied:', error);
+                    alert('Please enable location access for better experience');
+                }
+            );
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app');
+            
+            // Set default language if not set
+            if (!localStorage.getItem('app_language')) {
+                localStorage.setItem('app_language', 'en-IN');
+            }
+            
+            // Check location permission
+            setTimeout(checkLocationPermission, 1000);
+            
+            console.log('App initialized successfully');
+        });
+    </script>
+    
+    <!-- Load external scripts after inline functions -->
+    <script src="assets/js/app.js" onerror="console.error('Failed to load app.js')"></script>
+    <script src="assets/js/map_logic.js" onerror="console.error('Failed to load map_logic.js')"></script>
 </body>
 </html>

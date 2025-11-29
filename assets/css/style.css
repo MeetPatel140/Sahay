@@ -36,12 +36,17 @@ body {
 .helper-card,
 .task-card {
     background: #fff;
-    border: none;
+    border: 1px solid #f0f0f0;
     border-radius: 1rem;
     padding: 1rem;
     margin-bottom: 0.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.2s ease;
+}
+
+.helper-card:hover,
+.task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .helper-card:active,

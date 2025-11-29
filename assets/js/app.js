@@ -186,6 +186,13 @@ function loadNotifications() {
 
 function contactHelper(helperId) { showToast('Calling helper...', 'info'); }
 
+function closeHelpersPanel() {
+    try {
+        const panel = document.getElementById('helpers-panel');
+        if (panel) panel.classList.add('hidden');
+    } catch(e) { console.error(e); }
+}
+
 function openWallet() {
     try {
         const panel = document.getElementById('wallet-panel');

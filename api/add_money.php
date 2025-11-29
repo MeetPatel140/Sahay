@@ -16,15 +16,28 @@ if ($amount < 10) {
     exit;
 }
 
-$stmt = $conn->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE user_id = ?");
-$stmt->bind_param("di", $amount, $_SESSION['user_id']);
+$user_id = $_SESSION['user_id'];
 
-if ($stmt->execute()) {
+$conn->begin_transaction();
+
+try {
+    // Add to wallet
+    $stmt = $conn->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE user_id = ?");
+    $stmt->bind_param("di", $amount, $user_id);
+    $stmt->execute();
+    
+    // Record transaction
+    $stmt = $conn->prepare("INSERT INTO transactions (user_id, transaction_type, amount, description) VALUES (?, 'deposit', ?, 'Wallet top-up')");
+    $stmt->bind_param("id", $user_id, $amount);
+    $stmt->execute();
+    
+    $conn->commit();
     echo json_encode(['success' => true, 'message' => 'Money added successfully']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Failed to add money']);
+    
+} catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(['success' => false, 'message' => 'Transaction failed']);
 }
 
-$stmt->close();
 $conn->close();
 ?>

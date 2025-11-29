@@ -70,6 +70,17 @@ CREATE TABLE wallet_transactions (
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE SET NULL
 );
 
+-- General Transactions (for deposits/withdrawals)
+CREATE TABLE transactions (
+    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    transaction_type ENUM('deposit', 'withdrawal') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 -- Insert Sample Data for Testing
 
 -- Sample Users (Customers)

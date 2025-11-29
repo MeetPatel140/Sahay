@@ -210,17 +210,70 @@ $user = $stmt->get_result()->fetch_assoc();
     </div>
 
     <div id="wallet-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="closeWallet()">
-        <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl" onclick="event.stopPropagation()">
+        <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto" onclick="event.stopPropagation()">
             <div class="max-w-md mx-auto p-6">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h3 class="font-bold mb-4 text-gray-900"><i class="fas fa-wallet text-teal mr-2"></i>Add Money</h3>
-                <form onsubmit="processAddMoney(event)">
-                    <input type="number" id="add-amount" placeholder="Enter amount" min="10" 
-                           class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 focus:border-teal focus:outline-none" required>
-                    <button type="submit" class="w-full bg-teal text-white p-4 rounded-2xl font-medium">
-                        Add to Wallet
+                <h3 class="font-bold mb-4 text-gray-900"><i class="fas fa-wallet text-teal mr-2"></i>Wallet</h3>
+                
+                <!-- Balance Display -->
+                <div class="bg-gradient-to-r from-teal to-green-600 p-4 rounded-2xl mb-4 text-white text-center">
+                    <div class="text-sm opacity-90 mb-1">Available Balance</div>
+                    <div class="text-2xl font-bold">₹<?php echo number_format($user['wallet_balance'], 0); ?></div>
+                </div>
+                
+                <!-- Withdraw Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Withdraw Money</span>
+                        <span class="text-xs text-gray-500" id="withdraw-limit">2/3 left this week</span>
+                    </div>
+                    <button type="button" onclick="openWithdrawForm()" class="w-full bg-orange-500 text-white p-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Withdraw Amount
                     </button>
-                </form>
+                </div>
+                
+                <!-- Add Money Section -->
+                <div>
+                    <div class="text-sm font-medium text-gray-700 mb-3">Add Money</div>
+                    
+                    <!-- Quick Amount Buttons -->
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <button type="button" onclick="setAmount(10)" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            +₹10
+                        </button>
+                        <button type="button" onclick="setAmount(25)" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            +₹25
+                        </button>
+                        <button type="button" onclick="setAmount(50)" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            +₹50
+                        </button>
+                        <button type="button" onclick="setAmount(100)" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            +₹100
+                        </button>
+                        <button type="button" onclick="setAmount(500)" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            +₹500
+                        </button>
+                        <button type="button" onclick="showCustomAmount()" class="bg-gray-100 text-gray-700 p-3 rounded-xl font-medium hover:bg-teal hover:text-white transition-colors">
+                            Other
+                        </button>
+                    </div>
+                    
+                    <!-- Custom Amount Input (Hidden by default) -->
+                    <div id="custom-amount-section" class="hidden mb-4">
+                        <input type="number" id="custom-amount" placeholder="Enter amount" min="10" 
+                               class="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-teal focus:outline-none">
+                    </div>
+                    
+                    <!-- Selected Amount Display -->
+                    <div id="selected-amount" class="hidden bg-teal/10 border border-teal/20 p-3 rounded-xl mb-4">
+                        <div class="text-sm text-teal font-medium">Selected Amount: ₹<span id="amount-display">0</span></div>
+                    </div>
+                    
+                    <!-- Add Money Button -->
+                    <button type="button" onclick="processAddMoney()" id="add-money-btn" class="w-full bg-teal text-white p-4 rounded-xl font-medium opacity-50 cursor-not-allowed" disabled>
+                        <i class="fas fa-plus mr-2"></i>Add to Wallet
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -442,26 +495,59 @@ $user = $stmt->get_result()->fetch_assoc();
             });
         }
         
-        function processAddMoney(event) {
-            console.log('Processing add money');
-            event.preventDefault();
+        let selectedAmount = 0;
+        
+        function setAmount(amount) {
+            console.log('Setting amount:', amount);
+            selectedAmount = amount;
             
-            const amount = document.getElementById('add-amount').value;
-            if (!amount || amount < 10) {
-                alert('Please enter amount of at least ₹10');
+            // Hide custom input
+            document.getElementById('custom-amount-section').classList.add('hidden');
+            
+            // Show selected amount
+            document.getElementById('amount-display').textContent = amount;
+            document.getElementById('selected-amount').classList.remove('hidden');
+            
+            // Enable add money button
+            const btn = document.getElementById('add-money-btn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.classList.add('hover:bg-opacity-90');
+        }
+        
+        function showCustomAmount() {
+            console.log('Showing custom amount input');
+            const section = document.getElementById('custom-amount-section');
+            section.classList.remove('hidden');
+            document.getElementById('custom-amount').focus();
+            
+            // Listen for input changes
+            document.getElementById('custom-amount').oninput = function() {
+                const amount = parseInt(this.value);
+                if (amount >= 10) {
+                    setAmount(amount);
+                }
+            };
+        }
+        
+        function processAddMoney() {
+            console.log('Processing add money, amount:', selectedAmount);
+            
+            if (!selectedAmount || selectedAmount < 10) {
+                alert('Please select an amount of at least ₹10');
                 return;
             }
             
             fetch('api/add_money.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `amount=${amount}`
+                body: `amount=${selectedAmount}`
             })
             .then(r => r.json())
             .then(d => {
                 console.log('Add money result:', d);
                 if (d.success) {
-                    alert(`₹${amount} added to wallet!`);
+                    alert(`₹${selectedAmount} added to wallet!`);
                     setTimeout(() => {
                         closeWallet();
                         location.reload();
@@ -474,6 +560,40 @@ $user = $stmt->get_result()->fetch_assoc();
                 console.error('Add money error:', e);
                 alert('Error adding money');
             });
+        }
+        
+        function openWithdrawForm() {
+            console.log('Opening withdraw form');
+            const amount = prompt('Enter amount to withdraw (₹10 minimum):');
+            if (!amount || amount < 10) {
+                alert('Please enter amount of at least ₹10');
+                return;
+            }
+            
+            if (confirm(`Withdraw ₹${amount} from wallet?`)) {
+                fetch('api/withdraw_money.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `amount=${amount}`
+                })
+                .then(r => r.json())
+                .then(d => {
+                    console.log('Withdraw result:', d);
+                    if (d.success) {
+                        alert(`₹${amount} withdrawal initiated!`);
+                        setTimeout(() => {
+                            closeWallet();
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Failed to withdraw: ' + (d.message || 'Unknown error'));
+                    }
+                })
+                .catch(e => {
+                    console.error('Withdraw error:', e);
+                    alert('Error processing withdrawal');
+                });
+            }
         }
         
         function changeLanguage(lang) {

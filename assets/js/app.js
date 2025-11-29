@@ -77,7 +77,7 @@ function loadNearbyHelpers() {
                                 <div class="text-sm text-gray-500">${helper.skill_tags}</div>
                                 <div class="text-sm text-teal-600 font-medium mt-1">₹${helper.base_rate}/hr • ${helper.distance.toFixed(1)}km</div>
                             </div>
-                            <button onclick="contactHelper('${helper.full_name}')" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm">
+                            <button onclick="contactHelper(${helper.user_id})" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm">
                                 <i class="fas fa-phone"></i>
                             </button>
                         </div>
@@ -161,6 +161,61 @@ function acceptTask(taskId) {
     });
 }
 
+function completeTask(taskId) {
+    fetch('api/complete_task.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `task_id=${taskId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Task completed! Payment received', 'success');
+            loadMyTasks();
+        } else {
+            showToast('Failed: ' + data.message, 'error');
+        }
+    });
+}
+
+function cancelTask(taskId) {
+    if (confirm('Cancel this task?')) {
+        fetch('api/cancel_task.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `task_id=${taskId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Task cancelled', 'success');
+                loadMyTasks();
+            } else {
+                showToast('Failed: ' + data.message, 'error');
+            }
+        });
+    }
+}
+
+function rateHelper(taskId) {
+    const rating = prompt('Rate helper (1-5 stars):');
+    if (rating && rating >= 1 && rating <= 5) {
+        fetch('api/rate_helper.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `task_id=${taskId}&rating=${rating}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Rating submitted!', 'success');
+            } else {
+                showToast('Failed: ' + data.message, 'error');
+            }
+        });
+    }
+}
+
 function updateLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -213,6 +268,17 @@ function loadMyTasks() {
                     'cancelled': 'status-cancelled'
                 };
                 
+                let actions = '';
+                if (task.status === 'in_progress' && task.my_role === 'helper') {
+                    actions = `<button onclick="completeTask(${task.task_id})" class="text-xs bg-green-500 text-white px-3 py-1 rounded-full mt-2">Complete</button>`;
+                }
+                if (task.status === 'pending' || task.status === 'accepted') {
+                    actions += `<button onclick="cancelTask(${task.task_id})" class="text-xs bg-red-500 text-white px-3 py-1 rounded-full mt-2 ml-2">Cancel</button>`;
+                }
+                if (task.status === 'completed' && task.my_role === 'customer') {
+                    actions += `<button onclick="rateHelper(${task.task_id})" class="text-xs bg-yellow-500 text-white px-3 py-1 rounded-full mt-2 ml-2">Rate</button>`;
+                }
+                
                 taskDiv.innerHTML = `
                     <div>
                         <div class="flex items-center gap-2 mb-2">
@@ -221,6 +287,7 @@ function loadMyTasks() {
                         </div>
                         <div class="text-sm text-gray-600 mb-1">${task.description}</div>
                         <div class="text-xs text-gray-400">${new Date(task.created_at).toLocaleDateString()}</div>
+                        ${actions}
                     </div>
                 `;
                 myTasksList.appendChild(taskDiv);
@@ -231,8 +298,22 @@ function loadMyTasks() {
     });
 }
 
-function contactHelper(helperName) {
-    showToast(`Calling ${helperName}...`, 'info');
+function loadNotifications() {
+    fetch('api/get_notifications.php')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.notifications.length > 0) {
+            const badge = document.getElementById('notif-badge');
+            if (badge) {
+                badge.textContent = data.notifications.length;
+                badge.classList.remove('hidden');
+            }
+        }
+    });
+}
+
+function contactHelper(helperId) {
+    showToast('Calling helper...', 'info');
 }
 
 function addMoney() {
@@ -246,11 +327,24 @@ function closeWallet() {
 function processAddMoney(event) {
     event.preventDefault();
     const amount = document.getElementById('add-amount').value;
-    showToast(`Adding ₹${amount} to wallet...`, 'success');
-    setTimeout(() => {
-        closeWallet();
-        location.reload();
-    }, 1500);
+    
+    fetch('api/add_money.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `amount=${amount}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`₹${amount} added to wallet`, 'success');
+            setTimeout(() => {
+                closeWallet();
+                location.reload();
+            }, 1500);
+        } else {
+            showToast('Failed: ' + data.message, 'error');
+        }
+    });
 }
 
 function openMenu() {
@@ -327,10 +421,13 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLocation();
     }
     
+    loadNotifications();
+    
     setInterval(() => {
         if (document.getElementById('helper-view')) {
             loadNearbyTasks();
         }
+        loadNotifications();
     }, 15000);
     
     document.addEventListener('click', function(e) {

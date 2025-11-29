@@ -54,9 +54,15 @@ $user = $stmt->get_result()->fetch_assoc();
             </div>
             <?php endif; ?>
             
-            <button onclick="addMoney()" class="px-4 py-2 bg-teal-600 text-white rounded-full shadow-lg text-sm font-bold">
-                ₹<?php echo number_format($user['wallet_balance'], 0); ?>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('notif-panel').classList.remove('hidden')" class="relative w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
+                    <i class="fas fa-bell text-gray-700"></i>
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <button onclick="addMoney()" class="px-4 py-2 bg-teal-600 text-white rounded-full shadow-lg text-sm font-bold">
+                    ₹<?php echo number_format($user['wallet_balance'], 0); ?>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -202,6 +208,18 @@ $user = $stmt->get_result()->fetch_assoc();
                         Add to Wallet
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="notif-panel" class="hidden fixed inset-0 bg-black/50 z-50" onclick="this.classList.add('hidden')">
+        <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-96 overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="max-w-md mx-auto p-6">
+                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                <h3 class="font-bold mb-4 text-gray-900"><i class="fas fa-bell text-gray-400 mr-2"></i>Notifications</h3>
+                <div id="notif-list">
+                    <div class="text-gray-400 text-center py-4">No new notifications</div>
+                </div>
             </div>
         </div>
     </div>

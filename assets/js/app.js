@@ -1,4 +1,6 @@
 let userLocation = null;
+let locationPermissionGranted = false;
+let locationCheckAttempted = false;
 
 function toggleMode(isHelperMode) {
     const newMode = isHelperMode ? 'helper' : 'customer';
@@ -50,6 +52,8 @@ function loadNearbyHelpers() {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             userLocation = {lat, lng};
+            locationPermissionGranted = true;
+            hideLocationAlert();
             
             fetch(`api/get_helpers.php?lat=${lat}&lng=${lng}`)
             .then(response => response.json())
@@ -66,15 +70,15 @@ function loadNearbyHelpers() {
                 
                 helpers.forEach(helper => {
                     const helperDiv = document.createElement('div');
-                    helperDiv.className = 'p-4 border rounded-lg mb-2 hover:bg-gray-50 cursor-pointer';
+                    helperDiv.className = 'helper-card p-4 border rounded-2xl mb-3 shadow-lg hover:shadow-xl transition-all duration-300';
                     helperDiv.innerHTML = `
                         <div class="flex justify-between items-center">
                             <div>
-                                <div class="font-semibold">${helper.full_name}</div>
+                                <div class="font-semibold text-gray-800">${helper.full_name}</div>
                                 <div class="text-sm text-gray-600">${helper.skill_tags}</div>
-                                <div class="text-sm text-blue-600">₹${helper.base_rate}/hr • ${helper.distance.toFixed(1)}km away</div>
+                                <div class="text-sm text-teal-600 font-medium">₹${helper.base_rate}/hr • ${helper.distance.toFixed(1)}km away</div>
                             </div>
-                            <button onclick="contactHelper('${helper.full_name}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                            <button onclick="contactHelper('${helper.full_name}')" class="bg-teal-500 text-white px-4 py-2 rounded-full text-sm hover:bg-teal-600 transition-colors">
                                 Contact
                             </button>
                         </div>
@@ -82,7 +86,12 @@ function loadNearbyHelpers() {
                     helpersList.appendChild(helperDiv);
                 });
             });
+        }, function(error) {
+            locationPermissionGranted = false;
+            showLocationAlert();
         });
+    } else {
+        showLocationAlert();
     }
 }
 
@@ -91,6 +100,8 @@ function loadNearbyTasks() {
         navigator.geolocation.getCurrentPosition(function(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
+            locationPermissionGranted = true;
+            hideLocationAlert();
             
             fetch(`api/get_tasks.php?lat=${lat}&lng=${lng}`)
             .then(response => response.json())
@@ -102,27 +113,35 @@ function loadNearbyTasks() {
                     tasksList.innerHTML = '';
                     data.tasks.forEach(task => {
                         const taskDiv = document.createElement('div');
-                        taskDiv.className = 'p-4 border rounded-lg mb-3 hover:bg-gray-50';
+                        taskDiv.className = 'task-card p-4 rounded-2xl mb-3 shadow-lg hover:shadow-xl transition-all duration-300';
                         taskDiv.innerHTML = `
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
-                                    <div class="font-semibold text-green-600">₹${task.agreed_price}</div>
-                                    <div class="text-sm text-gray-600 mb-2">by ${task.customer_name} • ${task.distance.toFixed(1)}km away</div>
-                                    <div class="text-gray-800">${task.description}</div>
-                                    <div class="text-xs text-gray-500 mt-2">${new Date(task.created_at).toLocaleString()}</div>
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="font-bold text-xl text-teal-600">₹${task.agreed_price}</div>
+                                        <div class="text-sm text-gray-500">${task.distance.toFixed(1)}km away</div>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-2">by ${task.customer_name}</div>
+                                    <div class="text-gray-800 mb-2">${task.description}</div>
+                                    <div class="text-xs text-gray-400">${new Date(task.created_at).toLocaleString()}</div>
                                 </div>
-                                <button onclick="acceptTask(${task.task_id})" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-4">
-                                    Accept Task
+                                <button onclick="acceptTask(${task.task_id})" class="bg-orange-400 hover:bg-orange-500 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 ml-4">
+                                    Accept
                                 </button>
                             </div>
                         `;
                         tasksList.appendChild(taskDiv);
                     });
                 } else {
-                    tasksList.innerHTML = '<div class="text-gray-500">No tasks available nearby right now.</div>';
+                    tasksList.innerHTML = '<div class="text-gray-500 text-center py-8"><i class="fas fa-search text-3xl mb-2 opacity-50"></i><div>No tasks available nearby right now.</div></div>';
                 }
             });
+        }, function(error) {
+            locationPermissionGranted = false;
+            showLocationAlert();
         });
+    } else {
+        showLocationAlert();
     }
 }
 
@@ -151,6 +170,8 @@ function updateLocation() {
         navigator.geolocation.getCurrentPosition(function(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
+            locationPermissionGranted = true;
+            hideLocationAlert();
             
             fetch('api/update_location.php', {
                 method: 'POST',
@@ -160,15 +181,18 @@ function updateLocation() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Location updated successfully! You are now visible to customers.');
+                    showToast('Location updated successfully! You are now visible to customers.', 'success');
                     loadNearbyTasks();
                 } else {
-                    alert('Failed to update location: ' + data.message);
+                    showToast('Failed to update location: ' + data.message, 'error');
                 }
             });
         }, function(error) {
-            alert('Please enable location access to use helper mode.');
+            locationPermissionGranted = false;
+            showLocationAlert();
         });
+    } else {
+        showLocationAlert();
     }
 }
 
@@ -183,26 +207,26 @@ function loadMyTasks() {
             myTasksList.innerHTML = '';
             data.tasks.forEach(task => {
                 const taskDiv = document.createElement('div');
-                taskDiv.className = 'p-4 border rounded-lg mb-2';
+                taskDiv.className = 'task-card p-4 rounded-2xl mb-3 shadow-lg';
                 
-                const statusColor = {
-                    'pending': 'text-yellow-600',
-                    'accepted': 'text-blue-600',
-                    'in_progress': 'text-purple-600',
-                    'completed': 'text-green-600',
-                    'cancelled': 'text-red-600'
+                const statusStyles = {
+                    'pending': 'status-pending',
+                    'accepted': 'status-accepted',
+                    'in_progress': 'status-in_progress',
+                    'completed': 'status-completed',
+                    'cancelled': 'status-cancelled'
                 };
                 
                 taskDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-2">
-                                <span class="font-semibold">₹${task.agreed_price}</span>
-                                <span class="text-sm px-2 py-1 rounded ${statusColor[task.status]} bg-gray-100">${task.status.toUpperCase()}</span>
-                                <span class="text-sm text-gray-500">${task.my_role === 'customer' ? 'Posted by you' : 'Accepted by you'}</span>
+                                <span class="font-bold text-lg text-teal-600">₹${task.agreed_price}</span>
+                                <span class="text-xs px-3 py-1 rounded-full ${statusStyles[task.status]}">${task.status.toUpperCase()}</span>
                             </div>
-                            <div class="text-gray-800 mb-2">${task.description}</div>
-                            <div class="text-sm text-gray-600">
+                            <div class="text-sm text-gray-500 mb-1">${task.my_role === 'customer' ? 'Posted by you' : 'Accepted by you'}</div>
+                            <div class="text-gray-800 mb-2 text-sm">${task.description}</div>
+                            <div class="text-xs text-gray-400">
                                 ${task.other_person ? `With: ${task.other_person}` : 'No helper assigned yet'} • 
                                 ${new Date(task.created_at).toLocaleDateString()}
                             </div>
@@ -212,7 +236,7 @@ function loadMyTasks() {
                 myTasksList.appendChild(taskDiv);
             });
         } else {
-            myTasksList.innerHTML = '<div class="text-gray-500">No tasks yet.</div>';
+            myTasksList.innerHTML = '<div class="text-gray-500 text-center py-4"><i class="fas fa-clipboard-list text-2xl mb-2 opacity-50"></i><div>No tasks yet.</div></div>';
         }
     });
 }
@@ -221,8 +245,61 @@ function contactHelper(helperName) {
     alert(`Contact feature coming soon! Helper: ${helperName}`);
 }
 
+function showLocationAlert() {
+    if (!locationCheckAttempted) {
+        const alertDiv = document.getElementById('location-alert');
+        if (alertDiv) {
+            alertDiv.classList.remove('hidden');
+        }
+    }
+}
+
+function hideLocationAlert() {
+    const alertDiv = document.getElementById('location-alert');
+    if (alertDiv) {
+        alertDiv.classList.add('hidden');
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+function checkLocationPermission() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                locationPermissionGranted = true;
+                locationCheckAttempted = true;
+                hideLocationAlert();
+            },
+            function(error) {
+                locationPermissionGranted = false;
+                locationCheckAttempted = true;
+                if (error.code === error.PERMISSION_DENIED) {
+                    showLocationAlert();
+                }
+            }
+        );
+    }
+}
+
 // Initialize based on current view
 document.addEventListener('DOMContentLoaded', function() {
+    // Check location permission on load
+    checkLocationPermission();
+    
     if (document.getElementById('customer-view')) {
         loadNearbyHelpers();
     }
